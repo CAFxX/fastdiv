@@ -7,11 +7,15 @@ import (
 )
 
 var (
-	sinkUint16 uint16 = math.MaxUint16
-	varUint16  uint16 = 14 //12345
+	sinkUint16  uint16 = math.MaxUint16
+	varUint16   uint16 = constUint16
+	varUint16p2 uint16 = constUint16p2
 )
 
-const constUint16 uint16 = 12345
+const (
+	constUint16   uint16 = 12345
+	constUint16p2 uint16 = 1024
+)
 
 func TestUint16Div(t *testing.T) {
 	checkUint16Div := func(x, y uint16) bool {
@@ -161,8 +165,21 @@ func BenchmarkUint16DivConst(b *testing.B) {
 	}
 }
 
+func BenchmarkUint16DivConstP2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		sinkUint16 = sinkUint16 / constUint16p2
+	}
+}
+
 func BenchmarkUint16Div(b *testing.B) {
 	d := NewUint16(varUint16)
+	for i := 0; i < b.N; i++ {
+		sinkUint16 = d.Div(sinkUint16)
+	}
+}
+
+func BenchmarkUint16DivP2(b *testing.B) {
+	d := NewUint16(varUint16p2)
 	for i := 0; i < b.N; i++ {
 		sinkUint16 = d.Div(sinkUint16)
 	}
@@ -180,8 +197,21 @@ func BenchmarkUint16ModConst(b *testing.B) {
 	}
 }
 
+func BenchmarkUint16ModConstP2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		sinkUint16 = sinkUint16 % constUint16p2
+	}
+}
+
 func BenchmarkUint16Mod(b *testing.B) {
 	d := NewUint16(varUint16)
+	for i := 0; i < b.N; i++ {
+		sinkUint16 = d.Mod(sinkUint16)
+	}
+}
+
+func BenchmarkUint16ModP2(b *testing.B) {
+	d := NewUint16(varUint16p2)
 	for i := 0; i < b.N; i++ {
 		sinkUint16 = d.Mod(sinkUint16)
 	}
@@ -207,8 +237,29 @@ func BenchmarkUint16DivisibleConst(b *testing.B) {
 	}
 }
 
+func BenchmarkUint16DivisibleConstP2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		if (uint16(i) % constUint16p2) == 0 {
+			sinkUint16 = 2.0
+		} else {
+			sinkUint16 = 1.0
+		}
+	}
+}
+
 func BenchmarkUint16Divisible(b *testing.B) {
 	d := NewUint16(varUint16)
+	for i := 0; i < b.N; i++ {
+		if d.Divisible(uint16(i)) {
+			sinkUint16 = 2.0
+		} else {
+			sinkUint16 = 1.0
+		}
+	}
+}
+
+func BenchmarkUint16DivisibleP2(b *testing.B) {
+	d := NewUint16(varUint16p2)
 	for i := 0; i < b.N; i++ {
 		if d.Divisible(uint16(i)) {
 			sinkUint16 = 2.0

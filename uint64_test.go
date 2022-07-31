@@ -7,11 +7,15 @@ import (
 )
 
 var (
-	sinkUint64 uint64 = math.MaxUint64
-	varUint64  uint64 = 123456789
+	sinkUint64  uint64 = math.MaxUint64
+	varUint64   uint64 = constUint64
+	varUint64p2 uint64 = constUint64p2
 )
 
-const constUint64 uint64 = 123456789
+const (
+	constUint64   uint64 = 123456789
+	constUint64p2 uint64 = 1024
+)
 
 func TestUint64Div(t *testing.T) {
 	checkUint64Div := func(x, y uint64) bool {
@@ -160,8 +164,21 @@ func BenchmarkUint64DivConst(b *testing.B) {
 	}
 }
 
+func BenchmarkUint64DivConstP2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		sinkUint64 = sinkUint64 / constUint64p2
+	}
+}
+
 func BenchmarkUint64Div(b *testing.B) {
 	d := NewUint64(varUint64)
+	for i := 0; i < b.N; i++ {
+		sinkUint64 = d.Div(sinkUint64)
+	}
+}
+
+func BenchmarkUint64DivP2(b *testing.B) {
+	d := NewUint64(varUint64p2)
 	for i := 0; i < b.N; i++ {
 		sinkUint64 = d.Div(sinkUint64)
 	}
@@ -179,8 +196,21 @@ func BenchmarkUint64ModConst(b *testing.B) {
 	}
 }
 
+func BenchmarkUint64ModConstP2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		sinkUint64 = sinkUint64 % constUint64p2
+	}
+}
+
 func BenchmarkUint64Mod(b *testing.B) {
 	d := NewUint64(varUint64)
+	for i := 0; i < b.N; i++ {
+		sinkUint64 = d.Mod(sinkUint64)
+	}
+}
+
+func BenchmarkUint64ModP2(b *testing.B) {
+	d := NewUint64(varUint64p2)
 	for i := 0; i < b.N; i++ {
 		sinkUint64 = d.Mod(sinkUint64)
 	}
@@ -206,8 +236,29 @@ func BenchmarkUint64DivisibleConst(b *testing.B) {
 	}
 }
 
+func BenchmarkUint64DivisibleConstP2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		if (uint64(i) % constUint64p2) == 0 {
+			sinkUint64 = 2.0
+		} else {
+			sinkUint64 = 1.0
+		}
+	}
+}
+
 func BenchmarkUint64Divisible(b *testing.B) {
 	d := NewUint64(varUint64)
+	for i := 0; i < b.N; i++ {
+		if d.Divisible(uint64(i)) {
+			sinkUint64 = 2.0
+		} else {
+			sinkUint64 = 1.0
+		}
+	}
+}
+
+func BenchmarkUint64DivisibleP2(b *testing.B) {
+	d := NewUint64(varUint64p2)
 	for i := 0; i < b.N; i++ {
 		if d.Divisible(uint64(i)) {
 			sinkUint64 = 2.0

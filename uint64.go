@@ -10,13 +10,20 @@ type Uint64 struct {
 
 // NewUint64 initializes a new pre-computed inverse.
 func NewUint64(d uint64) Uint64 {
+	if bits.OnesCount64(d) == 1 {
+		return Uint64{
+			hi: uint64(bits.TrailingZeros64(d)),
+			lo: d - 1,
+		}
+	}
+
 	hi, r := ^uint64(0)/d, ^uint64(0)%d
 	lo, _ := bits.Div64(r, ^uint64(0), d)
 	var c uint64
 	lo, c = bits.Add64(lo, 1, 0)
 	hi, _ = bits.Add64(hi, 0, c)
 	return Uint64{
-		d:  d,
+		d:  d, // d != 0
 		hi: hi,
 		lo: lo,
 	}
@@ -24,6 +31,10 @@ func NewUint64(d uint64) Uint64 {
 
 // Div calculates n / d using the pre-computed inverse.
 func (d Uint64) Div(n uint64) uint64 {
+	if d.d == 0 {
+		return n >> d.hi
+	}
+
 	divlo1, _ := bits.Mul64(d.lo, n)
 	div, divlo2 := bits.Mul64(d.hi, n)
 	var c uint64
@@ -34,6 +45,10 @@ func (d Uint64) Div(n uint64) uint64 {
 
 // Mod calculates n % d using the pre-computed inverse.
 func (d Uint64) Mod(n uint64) uint64 {
+	if d.d == 0 {
+		return n & d.lo
+	}
+
 	hi, lo := bits.Mul64(d.lo, n)
 	hi += d.hi * n
 	modlo1, _ := bits.Mul64(lo, d.d)
@@ -47,6 +62,10 @@ func (d Uint64) Mod(n uint64) uint64 {
 // DivMod calculates n / d and n % d using the pre-computed inverse.
 // Note must have d > 1.
 func (d Uint64) DivMod(n uint64) (q, r uint64) {
+	if d.d == 0 {
+		return n >> d.hi, n & d.lo
+	}
+
 	divlo1, lo := bits.Mul64(d.lo, n)
 	div, divlo2 := bits.Mul64(d.hi, n)
 
@@ -66,6 +85,10 @@ func (d Uint64) DivMod(n uint64) (q, r uint64) {
 
 // Divisible determines whether n is exactly divisible by d using the pre-computed inverse.
 func (d Uint64) Divisible(n uint64) bool {
+	if d.d == 0 {
+		return n&d.lo == 0
+	}
+
 	var hicheck, locheck, b uint64
 	locheck, b = bits.Sub64(d.lo, 1, b)
 	hicheck, _ = bits.Sub64(d.hi, 0, b)

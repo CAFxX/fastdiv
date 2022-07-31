@@ -4,15 +4,24 @@ import "math/bits"
 
 // Uint32 calculates division by using a pre-computed inverse.
 type Uint32 struct {
-	d uint64
-	m uint64
+	d  uint64
+	m  uint64
+	p2 bool
 }
 
 // NewUint32 initializes a new pre-computed inverse for d != 0.
 // If d == 0, a runtime divide-by-zero panic is raised.
 func NewUint32(d uint32) Uint32 {
+	if bits.OnesCount32(d) == 1 {
+		return Uint32{
+			m:  uint64(bits.TrailingZeros32(d)),
+			d:  uint64(d - 1),
+			p2: true,
+		}
+	}
+
 	return Uint32{
-		d: uint64(d),
+		d: uint64(d), // d != 0
 		m: ^uint64(0)/uint64(d) + 1,
 	}
 }
@@ -20,12 +29,20 @@ func NewUint32(d uint32) Uint32 {
 // Div calculates n / d using the pre-computed inverse.
 // Note must have d > 1.
 func (d Uint32) Div(n uint32) uint32 {
+	if d.p2 {
+		return n >> d.m
+	}
+
 	div, _ := bits.Mul64(d.m, uint64(n))
 	return uint32(div)
 }
 
 // Mod calculates n % d using the pre-computed inverse.
 func (d Uint32) Mod(n uint32) uint32 {
+	if d.p2 {
+		return n & uint32(d.d)
+	}
+
 	fraction := d.m * uint64(n)
 	mod, _ := bits.Mul64(fraction, d.d)
 	return uint32(mod)
@@ -34,6 +51,10 @@ func (d Uint32) Mod(n uint32) uint32 {
 // DivMod calculates n / d and n % d using the pre-computed inverse.
 // Note must have d > 1.
 func (d Uint32) DivMod(n uint32) (uint32, uint32) {
+	if d.p2 {
+		return n >> d.m, n & uint32(d.d)
+	}
+
 	div, fraction := bits.Mul64(d.m, uint64(n))
 	mod, _ := bits.Mul64(fraction, d.d)
 	return uint32(div), uint32(mod)
@@ -41,5 +62,9 @@ func (d Uint32) DivMod(n uint32) (uint32, uint32) {
 
 // Divisible determines whether n is exactly divisible by d using the pre-computed inverse.
 func (d Uint32) Divisible(n uint32) bool {
+	if d.p2 {
+		return n&uint32(d.d) == 0
+	}
+
 	return d.m*uint64(n) <= d.m-1
 }

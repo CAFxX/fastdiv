@@ -7,11 +7,15 @@ import (
 )
 
 var (
-	sinkUint32 uint32 = math.MaxUint32
-	varUint32  uint32 = 123456789
+	sinkUint32  uint32 = math.MaxUint32
+	varUint32   uint32 = constUint32
+	varUint32p2 uint32 = constUint32p2
 )
 
-const constUint32 uint32 = 123456789
+const (
+	constUint32   uint32 = 123456789
+	constUint32p2 uint32 = 1024
+)
 
 func TestUint32Div(t *testing.T) {
 	checkUint32Div := func(x, y uint32) bool {
@@ -161,8 +165,21 @@ func BenchmarkUint32DivConst(b *testing.B) {
 	}
 }
 
+func BenchmarkUint32DivConstP2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		sinkUint32 = sinkUint32 / constUint32p2
+	}
+}
+
 func BenchmarkUint32Div(b *testing.B) {
 	d := NewUint32(varUint32)
+	for i := 0; i < b.N; i++ {
+		sinkUint32 = d.Div(sinkUint32)
+	}
+}
+
+func BenchmarkUint32DivP2(b *testing.B) {
+	d := NewUint32(varUint32p2)
 	for i := 0; i < b.N; i++ {
 		sinkUint32 = d.Div(sinkUint32)
 	}
@@ -180,8 +197,21 @@ func BenchmarkUint32ModConst(b *testing.B) {
 	}
 }
 
+func BenchmarkUint32ModConstP2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		sinkUint32 = sinkUint32 % constUint32p2
+	}
+}
+
 func BenchmarkUint32Mod(b *testing.B) {
 	d := NewUint32(varUint32)
+	for i := 0; i < b.N; i++ {
+		sinkUint32 = d.Mod(sinkUint32)
+	}
+}
+
+func BenchmarkUint32ModP2(b *testing.B) {
+	d := NewUint32(varUint32p2)
 	for i := 0; i < b.N; i++ {
 		sinkUint32 = d.Mod(sinkUint32)
 	}
@@ -207,8 +237,29 @@ func BenchmarkUint32DivisibleConst(b *testing.B) {
 	}
 }
 
+func BenchmarkUint32DivisibleConstP2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		if (uint32(i) % constUint32p2) == 0 {
+			sinkUint32 = 2.0
+		} else {
+			sinkUint32 = 1.0
+		}
+	}
+}
+
 func BenchmarkUint32Divisible(b *testing.B) {
 	d := NewUint32(varUint32)
+	for i := 0; i < b.N; i++ {
+		if d.Divisible(uint32(i)) {
+			sinkUint32 = 2.0
+		} else {
+			sinkUint32 = 1.0
+		}
+	}
+}
+
+func BenchmarkUint32DivisibleP2(b *testing.B) {
+	d := NewUint32(varUint32p2)
 	for i := 0; i < b.N; i++ {
 		if d.Divisible(uint32(i)) {
 			sinkUint32 = 2.0
